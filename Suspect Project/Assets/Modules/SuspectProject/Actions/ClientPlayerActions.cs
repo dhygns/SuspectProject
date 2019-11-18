@@ -19,8 +19,8 @@ namespace SuspectProject.Client
             Player player = clientState.players.AddNew(_networkID);
 
             player.networkID.value = _networkID;
-            player.avatarID.value = PlayerAvatarManager.GetRandomID();
-            player.roleID.value = PlayerRoleManager.GetRandomID();
+            //player.avatarID.value = PlayerAvatarManager.GetRandomID();
+            //player.roleID.value = PlayerRoleManager.GetRandomID();
         }
     }
 
@@ -40,13 +40,13 @@ namespace SuspectProject.Client
 
         public override void Execute(ClientState clientState)
         {
-            var targetPlayerState = clientState.players[_targetPlayerID].state;
-            var itemState = clientState.items[_itemID].state;
+            //var targetPlayerState = clientState.players[_targetPlayerID].state;
+            //var itemState = clientState.items[_itemID].state;
 
-            targetPlayerState.healthLevel.value += itemState.healthLevel.value;
-            targetPlayerState.hungryLevel.value += itemState.hungryLevel.value;
-            targetPlayerState.temperature.value += itemState.temperature.value;
-            targetPlayerState.thirstLevel.value += itemState.thirstLevel.value;
+            //targetPlayerState.healthLevel.value += itemState.healthLevel.value;
+            //targetPlayerState.hungryLevel.value += itemState.hungryLevel.value;
+            //targetPlayerState.temperature.value += itemState.temperature.value;
+            //targetPlayerState.thirstLevel.value += itemState.thirstLevel.value;
         }
     }
 
