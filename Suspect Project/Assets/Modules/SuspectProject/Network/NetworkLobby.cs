@@ -113,7 +113,7 @@ public class NetworkLobby : MonoBehaviourPunCallbacks
     {
         _triedCount = 0;
         SetNetworkStatus($"Room Joined\n{PhotonNetwork.CurrentRoom.Name}");
-        SceneManager.LoadScene("GameScene");
+        PhotonNetwork.LoadLevel("GameScene");
     }
 
     public void OnPlayerNameChanged(string playerName)
