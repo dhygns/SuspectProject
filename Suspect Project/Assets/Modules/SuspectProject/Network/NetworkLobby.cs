@@ -118,7 +118,7 @@ public class NetworkLobby : MonoBehaviourPunCallbacks
 
     public void OnPlayerNameChanged(string playerName)
     {
-        UserInfoManager.SetPlayerName(playerName);
+        GameBuilder.displayName = playerName;
         isPlayerNameReady = !string.IsNullOrWhiteSpace(playerName);
     }
 

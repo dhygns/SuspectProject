@@ -14,7 +14,7 @@ public class TestObject : MonoBehaviourPun, IPunObservable
     {
         if (photonView.IsMine)
         {
-            displayName.text = UserInfoManager.GetPlayerName();
+            displayName.text = GameBuilder.displayName;
         }
     }
 
@@ -22,7 +22,7 @@ public class TestObject : MonoBehaviourPun, IPunObservable
     {
         if (stream.IsWriting)
         {
-            stream.SendNext(UserInfoManager.GetPlayerName());
+            stream.SendNext(GameBuilder.displayName);
         }
 
         if (stream.IsReading)
