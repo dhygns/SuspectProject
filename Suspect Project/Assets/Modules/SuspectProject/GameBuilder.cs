@@ -21,9 +21,13 @@ public class GameBuilder : MonoBehaviour
 
     private void Awake()
     {
-        if (PhotonNetwork.IsMasterClient)
+        if (PhotonNetwork.NetworkClientState == Photon.Realtime.ClientState.Joined && PhotonNetwork.IsMasterClient)
         {
             PhotonNetwork.Instantiate(prefabGameDataManager.name, Vector3.zero, Quaternion.identity);
+        }
+        else
+        {
+            Instantiate(prefabGameDataManager);
         }
 
         Destroy(gameObject);
