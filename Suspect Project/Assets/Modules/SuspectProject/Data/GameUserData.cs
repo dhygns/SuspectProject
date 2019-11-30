@@ -1,4 +1,5 @@
 ﻿using System;
+using static SuspectProject.Data.Game;
 
 namespace SuspectProject.Data
 {

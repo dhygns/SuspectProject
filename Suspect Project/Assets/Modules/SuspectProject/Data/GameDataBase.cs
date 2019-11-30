@@ -9,7 +9,6 @@ namespace SuspectProject.Data
         {
             foreach(var propertyInfo in GetType().GetProperties())
             {
-                Debug.Log($"{propertyInfo.Name} {propertyInfo.PropertyType}");
                 propertyInfo.SetValue(this, Activator.CreateInstance(propertyInfo.PropertyType));
             }
         }

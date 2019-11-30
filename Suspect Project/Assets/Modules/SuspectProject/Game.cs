@@ -18,12 +18,30 @@ namespace SuspectProject.Data
     {
         public static Game instance { get; private set; } = null;
 
+        /// <summary>
+        /// 메인 게임 상태 데이터입니다. 해당 데이터를 통해 현재 모든 게임의 상태를 관측할 수 있습니다.
+        /// </summary>
         public static GameStateData state { get; protected set; } = new GameStateData();
 
-        public Queue<GameActionBase> exeQ = new Queue<GameActionBase>();
+        /// <summary>
+        /// 예약된 액션 큐입니다.
+        /// </summary>
+        public Queue<GameActionBase> reservatedActionQ = new Queue<GameActionBase>();
 
-        public Dictionary<GameDataBase, Action> observerDic = new Dictionary<GameDataBase, Action>();
-        
+
+        /// <summary>
+        /// 전체 액션의 히스토리를 기록하는 큐입니다.
+        /// </summary>
+        public Queue<GameActionBase> historyActionQ = new Queue<GameActionBase>();
+
+        /// <summary>
+        /// 최대 저장 가능한 히스토리 갯수입니다.
+        /// </summary>
+        public int maxHistoryActionCount = 10;
+
+
+        private static bool _readyToAction = false;
+
         public void Awake()
         {
             if (instance == null)
@@ -45,27 +63,39 @@ namespace SuspectProject.Data
         {
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
-                ExecuteAction(new SetupPlayerAction());
-                Debug.LogWarning(state);
+                ExecuteAction(new SetupPlayerAction("DEBUG NETWORK ID", "DEBUG DISPLAY NAME"));
             }
         }
 
         public void LateUpdate()
         {
-            while (exeQ.Count > 0)
+            while (reservatedActionQ.Count > 0)
             {
-                ExecuteAction(exeQ.Dequeue());
+                ExecuteAction(reservatedActionQ.Dequeue());
             }
         }
 
         public static void ScheduleAction(GameActionBase action)
         {
-            instance.exeQ.Enqueue(action);
+            instance.reservatedActionQ.Enqueue(action);
         }
 
         public static void ExecuteAction(GameActionBase action)
         {
+            // allow changing data value
+            _readyToAction = true;
+
             action.Execute(state);
+
+            // unallow changing data value
+            _readyToAction = false;
+
+            // register executed action into history
+            instance.historyActionQ.Enqueue(action);
+
+            // keep hisotry count under max histroy count
+            while (instance.historyActionQ.Count > instance.maxHistoryActionCount)
+                instance.historyActionQ.Dequeue();
         }
 
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
