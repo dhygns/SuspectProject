@@ -31,6 +31,11 @@ namespace SuspectProject.Data
             user.displayName.SetValue(_displayName);
             user.roleID.SetValue(_roleID);
 
+            user.currentHealth.SetValue(100.0f);
+            user.currentHungry.SetValue(100.0f);
+            user.currentThrist.SetValue(100.0f);
+            user.currentTemperature.SetValue(96.8f);
+
             state.users.Add(_networkID, user);
         }
         public override string Description()

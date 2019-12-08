@@ -79,15 +79,10 @@ namespace SuspectProject.Data
             else
             {
                 dynamic data = Convert.ChangeType(dataPrimitive, dataPrimitive.GetType());
-
-                EditorGUI.indentLevel++;
                 EditorGUILayout.BeginHorizontal();
-                {
-                    EditorGUILayout.PrefixLabel(title);
-                    EditorGUILayout.SelectableLabel($"{data.value}");
-                }
+                EditorGUILayout.LabelField($"{title}", GUILayout.Width(150.0f));
+                EditorGUILayout.TextArea($"{data.value}");
                 EditorGUILayout.EndHorizontal();
-                EditorGUI.indentLevel--;
             }
         }
 

@@ -77,9 +77,72 @@ namespace SuspectProject.Data
             }
         }
 
-        public abstract class GameDataEnumerable : GameDataPrimitive
+        public abstract class GameDataEnumerable : GameDataPrimitive { }
+
+        public sealed class GameDataList<T> : GameDataEnumerable, IEnumerable<T>
         {
+            private List<T> _value = new List<T>();
+            public T this[int key] => _value[key];
+
+            public void Add(T value)
+            {
+                if (_readyToAction)
+                {
+                    _value.Add(value);
+                    RegisterChangedPrimitive(this, Action.Type.Add, value);
+                }
+                else
+                {
+                    Debug.LogError($"[Error] If you want to change any value of {GetType()}, please use class, inheriting GameActionBase");
+                }
+            }
+
+            public bool Remove(T value)
+            {
+                if (_readyToAction)
+                {
+                    if (_value.Contains(value))
+                    {
+                        RegisterChangedPrimitive(this, Action.Type.Remove, value);
+                    }
+
+                    return _value.Remove(value);
+                }
+                else
+                {
+                    Debug.LogError($"[Error] If you want to change any value of {GetType()}, please use class, inheriting GameActionBase");
+
+                    return false;
+                }
+            }
+            public void Clear()
+            {
+                if (_readyToAction)
+                {
+                    foreach (var item in _value)
+                    {
+                        RegisterChangedPrimitive(this, Action.Type.Remove, item);
+                    }
+
+                    _value.Clear();
+                }
+                else
+                {
+                    Debug.LogError($"[Error] If you want to change any value of {GetType()}, please use class, inheriting GameActionBase");
+                }
+            }
+
+            public IEnumerator<T> GetEnumerator()
+            {
+                return _value.GetEnumerator();
+            }
+
+            IEnumerator IEnumerable.GetEnumerator()
+            {
+                return _value.GetEnumerator();
+            }
         }
+
 
 
         public sealed class GameDataDictionary<TKey, TValue> : GameDataEnumerable, IEnumerable<KeyValuePair<TKey, TValue>>
