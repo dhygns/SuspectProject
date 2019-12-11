@@ -7,25 +7,25 @@ namespace SuspectProject.Data
 {
     public partial class Game
     {
-        public abstract class GameDataPrimitive
+        public abstract class DataPrimitive
         {
             public struct Action
             {
                 public enum Type { Init, Add, Remove, Set };
 
-                public GameDataPrimitive primitive;
+                public DataPrimitive primitive;
                 public Type type;
                 public object[] parameters;
             }
 
             public static Queue<Action> ObservedChangedPrimitives { get; private set; } = new Queue<Action>();
 
-            public GameDataPrimitive()
+            public DataPrimitive()
             {
                 RegisterChangedPrimitive(this, Action.Type.Init);
             }
 
-            public void RegisterChangedPrimitive(GameDataPrimitive primitive, Action.Type type, params object[] parameters)
+            public void RegisterChangedPrimitive(DataPrimitive primitive, Action.Type type, params object[] parameters)
             {
                 ObservedChangedPrimitives.Enqueue(new Action
                 {
@@ -36,12 +36,12 @@ namespace SuspectProject.Data
             }
         }
 
-        public sealed class GameDataPrimitive<T> : GameDataPrimitive
+        public sealed class DataPrimitive<T> : DataPrimitive
         {
             private T _value = default;
             public T value => _value;
 
-            public GameDataPrimitive() : base()
+            public DataPrimitive() : base()
             {
                 if (typeof(T) != typeof(string))
                     _value = Activator.CreateInstance<T>();
@@ -77,9 +77,9 @@ namespace SuspectProject.Data
             }
         }
 
-        public abstract class GameDataEnumerable : GameDataPrimitive { }
+        public abstract class DataEnumerable : DataPrimitive { }
 
-        public sealed class GameDataList<T> : GameDataEnumerable, IEnumerable<T>
+        public sealed class DataList<T> : DataEnumerable, IEnumerable<T>
         {
             private List<T> _value = new List<T>();
             public T this[int key] => _value[key];
@@ -143,9 +143,7 @@ namespace SuspectProject.Data
             }
         }
 
-
-
-        public sealed class GameDataDictionary<TKey, TValue> : GameDataEnumerable, IEnumerable<KeyValuePair<TKey, TValue>>
+        public sealed class DataDictionary<TKey, TValue> : DataEnumerable, IEnumerable<KeyValuePair<TKey, TValue>>
         {
             private Dictionary<TKey, TValue> _value = new Dictionary<TKey, TValue>();
 

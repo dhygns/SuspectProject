@@ -37,7 +37,7 @@ namespace SuspectProject.Data
                 Type type = dataBase.GetType();
                 foreach (var propertyInfo in type.GetProperties())
                 {
-                    DrawDataPrimitive((GameDataPrimitive)propertyInfo.GetValue(dataBase), propertyInfo.Name);
+                    DrawDataPrimitive((DataPrimitive)propertyInfo.GetValue(dataBase), propertyInfo.Name);
                 }
             }
 
@@ -46,7 +46,7 @@ namespace SuspectProject.Data
 
         }
 
-        public void DrawDataEnumerable(GameDataEnumerable dataEnumerable, string title)
+        public void DrawDataEnumerable(DataEnumerable dataEnumerable, string title)
         {
             if (!_foldStatus.ContainsKey(dataEnumerable))
                 _foldStatus[dataEnumerable] = false;
@@ -69,12 +69,12 @@ namespace SuspectProject.Data
             EditorGUI.indentLevel--;
         }
 
-        public void DrawDataPrimitive(GameDataPrimitive dataPrimitive, string title)
+        public void DrawDataPrimitive(DataPrimitive dataPrimitive, string title)
         {
 
-            if (dataPrimitive is GameDataEnumerable)
+            if (dataPrimitive is DataEnumerable)
             {
-                DrawDataEnumerable(dataPrimitive as GameDataEnumerable, title);
+                DrawDataEnumerable(dataPrimitive as DataEnumerable, title);
             }
             else
             {

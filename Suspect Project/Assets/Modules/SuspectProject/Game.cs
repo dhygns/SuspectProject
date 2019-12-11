@@ -3,6 +3,13 @@ using Photon.Pun;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+
+//nametags
+using PrimitiveObserver = UnityEngine.Events.UnityAction<System.Collections.Generic.IEnumerable<SuspectProject.Data.Game.DataPrimitive.Action>>;
+using DataPrimitiveObservers = System.Collections.Generic.HashSet<UnityEngine.Events.UnityAction<System.Collections.Generic.IEnumerable<SuspectProject.Data.Game.DataPrimitive.Action>>>;
+using DataPrimitiveActions = System.Collections.Generic.HashSet<SuspectProject.Data.Game.DataPrimitive.Action>;
+
 
 namespace SuspectProject.Data
 {
@@ -28,17 +35,22 @@ namespace SuspectProject.Data
         /// </summary>
         public Queue<GameActionBase> reservatedActionQ = new Queue<GameActionBase>();
 
-
         /// <summary>
         /// 전체 액션의 히스토리를 기록하는 큐입니다.
         /// </summary>
         public Queue<GameActionBase> historyActionQ = new Queue<GameActionBase>();
 
         /// <summary>
+        /// 옵저버를 동록 / 관리 해줍니다.
+        /// </summary>
+        public Dictionary<DataPrimitive, DataPrimitiveObservers> observerDic = new Dictionary<DataPrimitive, DataPrimitiveObservers>();
+
+        /// <summary>
         /// 최대 저장 가능한 히스토리 갯수입니다.
         /// </summary>
         public int maxHistoryActionCount = 10;
 
+        private Dictionary<PrimitiveObserver, DataPrimitiveActions> blobs = new Dictionary<PrimitiveObserver, DataPrimitiveActions>();
 
         private static bool _readyToAction = false;
 
@@ -59,20 +71,71 @@ namespace SuspectProject.Data
         }
 
         //DEBUG ACTIONS 
+        int debug_index = 0;
         public void Update()
         {
+
             if (Input.GetKeyDown(KeyCode.Alpha1))
             {
-                ExecuteAction(new SetupPlayerAction("DEBUG NETWORK ID", "DEBUG DISPLAY NAME"));
+                RegisterObserver(HandleObservedValueChange, state.users);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Alpha2))
+            {
+                DeregisterObserver(HandleObservedValueChange);
+            }
+
+            if (Input.GetKeyDown(KeyCode.Space))
+            {
+                ExecuteAction(new SetupPlayerAction("DEBUG NETWORK ID" + debug_index, "DEBUG DISPLAY NAME" + debug_index));
+                debug_index++;
             }
         }
 
+        public void HandleObservedValueChange(IEnumerable<DataPrimitive.Action> actions)
+        {
+            foreach(var action in actions)
+            {
+                Debug.LogWarning($"{action.primitive}, {action.type}, {action.parameters}");
+            }
+        }
+
+
         public void LateUpdate()
         {
+            // Execute reservated actions
             while (reservatedActionQ.Count > 0)
             {
                 ExecuteAction(reservatedActionQ.Dequeue());
             }
+
+            // Check all happend actions and invoke registered listeners
+            while (DataPrimitive.ObservedChangedPrimitives.Count > 0)
+            {
+                var primitiveAction = DataPrimitive.ObservedChangedPrimitives.Dequeue();
+
+                if (observerDic.TryGetValue(primitiveAction.primitive, out DataPrimitiveObservers targetableObservers))
+                {
+
+                    foreach (var targetableObserver in targetableObservers)
+                    {
+                        if (!blobs.TryGetValue(targetableObserver, out DataPrimitiveActions actions))
+                        {
+                            actions = new DataPrimitiveActions();
+                            blobs.Add(targetableObserver, actions);
+                        }
+
+                        blobs[targetableObserver].Add(primitiveAction);
+                    }
+                }
+            }
+
+            foreach (var blob in blobs)
+            {
+                blob.Key?.Invoke(blob.Value);
+            }
+
+            blobs.Clear();
         }
 
         public static void ScheduleAction(GameActionBase action)
@@ -98,10 +161,38 @@ namespace SuspectProject.Data
                 instance.historyActionQ.Dequeue();
         }
 
+        public static void RegisterObserver(PrimitiveObserver observer, params DataPrimitive[] targets)
+        {
+            foreach (var target in targets)
+            {
+                HashSet<PrimitiveObserver> observers = null;
+
+                if (!instance.observerDic.TryGetValue(target, out observers))
+                {
+                    observers = new HashSet<PrimitiveObserver>();
+                    instance.observerDic.Add(target, observers);
+                }
+
+                if (!observers.Contains(observer))
+                {
+                    observers.Add(observer);
+                }
+            }
+        }
+
+        public static void DeregisterObserver(PrimitiveObserver observer)
+        {
+            foreach (var observers in instance.observerDic.Values)
+            {
+                observers.Remove(observer);
+            }
+        }
+
         public void OnPhotonSerializeView(PhotonStream stream, PhotonMessageInfo info)
         {
 
         }
+        
     }
 }
 
