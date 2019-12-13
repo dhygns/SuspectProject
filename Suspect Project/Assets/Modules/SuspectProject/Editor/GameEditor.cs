@@ -15,6 +15,8 @@ namespace SuspectProject.Data
 
         private Dictionary<object, bool> _foldStatus = new Dictionary<object, bool>();
 
+        private Vector2 historyScrollPosition = Vector3.zero;
+
 
         void OnEnable()
         {
@@ -24,10 +26,11 @@ namespace SuspectProject.Data
         public void DrawDataBase(GameDataBase dataBase, string title)
         {
             if(!_foldStatus.ContainsKey(dataBase))
+            {
                 _foldStatus[dataBase] = false;
+            }
 
             _foldStatus[dataBase] = EditorGUILayout.Foldout(_foldStatus[dataBase], $"{title}");
-
 
             EditorGUI.indentLevel++;
             EditorGUILayout.BeginVertical();
@@ -37,7 +40,17 @@ namespace SuspectProject.Data
                 Type type = dataBase.GetType();
                 foreach (var propertyInfo in type.GetProperties())
                 {
-                    DrawDataPrimitive((DataPrimitive)propertyInfo.GetValue(dataBase), propertyInfo.Name);
+                    object value = propertyInfo.GetValue(dataBase);
+
+                    if (value is DataPrimitive dataPrimitive)
+                    {
+                        DrawDataPrimitive(dataPrimitive, propertyInfo.Name);
+                    }
+
+                    if (value is GameDataBase childDataBase)
+                    {
+                        DrawDataBase(childDataBase, propertyInfo.Name);
+                    }
                 }
             }
 
@@ -49,7 +62,9 @@ namespace SuspectProject.Data
         public void DrawDataEnumerable(DataEnumerable dataEnumerable, string title)
         {
             if (!_foldStatus.ContainsKey(dataEnumerable))
+            {
                 _foldStatus[dataEnumerable] = false;
+            }
 
             _foldStatus[dataEnumerable] = EditorGUILayout.Foldout(_foldStatus[dataEnumerable], $"{title}");
 
@@ -58,11 +73,24 @@ namespace SuspectProject.Data
 
             if (_foldStatus[dataEnumerable])
             {
-                dynamic dataDictionary = Convert.ChangeType(dataEnumerable, dataEnumerable.GetType());
-                foreach (var kv in dataDictionary)
+                dynamic typedDataEnumerable = Convert.ChangeType(dataEnumerable, dataEnumerable.GetType());
+
+                if (typedDataEnumerable is DataDictionary)
                 {
-                    DrawDataBase(kv.Value, $"{kv.Key}");
+                    foreach (var kv in typedDataEnumerable)
+                    {
+                        DrawDataBase(kv.Value, $"{kv.Key}");
+                    }
                 }
+
+                if (typedDataEnumerable is DataList)
+                {
+                    foreach (var value in typedDataEnumerable)
+                    {
+                        EditorGUILayout.TextArea(value, GUILayout.Width(150.0f));
+                    }
+                }
+
             }
 
             EditorGUILayout.EndVertical();
@@ -71,10 +99,9 @@ namespace SuspectProject.Data
 
         public void DrawDataPrimitive(DataPrimitive dataPrimitive, string title)
         {
-
-            if (dataPrimitive is DataEnumerable)
+            if (dataPrimitive is DataEnumerable dataEnumerable)
             {
-                DrawDataEnumerable(dataPrimitive as DataEnumerable, title);
+                DrawDataEnumerable(dataEnumerable, title);
             }
             else
             {
@@ -88,12 +115,14 @@ namespace SuspectProject.Data
 
         public override void OnInspectorGUI()
         {
-            GUI.Box(EditorGUILayout.BeginVertical(), "Action History");
+            GUI.Box(EditorGUILayout.BeginVertical(GUILayout.MaxHeight(500.0f)), "Action History");
             EditorGUILayout.Space();
             EditorGUI.indentLevel++;
 
             EditorGUILayout.Space();
             EditorGUILayout.Space();
+
+            historyScrollPosition = EditorGUILayout.BeginScrollView(historyScrollPosition);
 
             if (instance != null)
             {
@@ -107,10 +136,13 @@ namespace SuspectProject.Data
                     EditorGUILayout.EndVertical();
                 }
             }
+            EditorGUILayout.EndScrollView();
 
             EditorGUI.indentLevel--;
             EditorGUILayout.EndVertical();
 
+            EditorGUILayout.Space();
+            EditorGUILayout.Space();
 
             GUI.Box(EditorGUILayout.BeginVertical(), "Data Hierarchy");
             EditorGUILayout.Space();

@@ -9,7 +9,7 @@ using UnityEngine.Events;
 using PrimitiveObserver = UnityEngine.Events.UnityAction<System.Collections.Generic.IEnumerable<SuspectProject.Data.Game.DataPrimitive.Action>>;
 using DataPrimitiveObservers = System.Collections.Generic.HashSet<UnityEngine.Events.UnityAction<System.Collections.Generic.IEnumerable<SuspectProject.Data.Game.DataPrimitive.Action>>>;
 using DataPrimitiveActions = System.Collections.Generic.HashSet<SuspectProject.Data.Game.DataPrimitive.Action>;
-
+using UnityEditor;
 
 namespace SuspectProject.Data
 {
@@ -72,6 +72,8 @@ namespace SuspectProject.Data
 
         //DEBUG ACTIONS 
         int debug_index = 0;
+        int debug_owned_item_index = 0;
+        int debug_equiped_item_index = 0;
         public void Update()
         {
 
@@ -90,11 +92,23 @@ namespace SuspectProject.Data
                 ExecuteAction(new SetupPlayerAction("DEBUG NETWORK ID" + debug_index, "DEBUG DISPLAY NAME" + debug_index));
                 debug_index++;
             }
+
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                ExecuteAction(new GetItemAction("DEBUG NETWORK ID0", "ITEM 1234" + debug_owned_item_index));
+                debug_owned_item_index++;
+            }
+
+            if (Input.GetKeyDown(KeyCode.F))
+            {
+                ExecuteAction(new EquipItemAction("DEBUG NETWORK ID0", "ITEM 1234" + debug_equiped_item_index));
+                debug_equiped_item_index++;
+            }
         }
 
         public void HandleObservedValueChange(IEnumerable<DataPrimitive.Action> actions)
         {
-            foreach(var action in actions)
+            foreach (var action in actions)
             {
                 Debug.LogWarning($"{action.primitive}, {action.type}, {action.parameters}");
             }
@@ -159,6 +173,8 @@ namespace SuspectProject.Data
             // keep hisotry count under max histroy count
             while (instance.historyActionQ.Count > instance.maxHistoryActionCount)
                 instance.historyActionQ.Dequeue();
+
+            EditorUtility.SetDirty(instance);
         }
 
         public static void RegisterObserver(PrimitiveObserver observer, params DataPrimitive[] targets)
